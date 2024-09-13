@@ -1,4 +1,4 @@
-import { and, count, eq, gte, lte, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { db } from '../db'
 import { goalCompletions, goals } from '../db/schema'
 import dayjs from 'dayjs'
@@ -31,13 +31,14 @@ export async function getWeekSummary() {
         //createdAt: goalCompletions.createdAt,
       })
       .from(goalCompletions)
-      .innerJoin(goals, eq(goals.id, goalCompletions.goalId))
+      .innerJoin(goals, eq(goals.id, goalCompletions.goalId))     
       .where(
         and(
           gte(goalCompletions.createdAt, firstDayOfWeek),
           lte(goalCompletions.createdAt, lastDayOfWeek)
         )
       )
+      .orderBy(desc(goalCompletions.createdAt))
   )
 
   type goalsPeerDay = Record<string, {
@@ -62,6 +63,7 @@ export async function getWeekSummary() {
       })
       .from(goalsCompletedInWeek)
       .groupBy(goalsCompletedInWeek.completedAtDate)
+      .orderBy(desc(goalsCompletedInWeek.completedAtDate))
   )
 
   const result = await db
